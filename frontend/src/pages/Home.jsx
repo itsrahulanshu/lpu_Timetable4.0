@@ -1,9 +1,10 @@
 /**
  * Home Page - Main Timetable View
  * Redesigned to match native mobile app design
+ * Optimized for buttery smooth performance
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { RefreshCw } from 'lucide-react';
 import { useTimetable } from '../hooks/useTimetable';
@@ -83,13 +84,13 @@ export default function Home() {
     return `Today at ${displayHours}:${displayMinutes} ${ampm}`;
   };
 
-  // Calculate today's class count
-  const getTodayCount = () => {
+  // Memoize today's class count for better performance
+  const todayCount = useMemo(() => {
     if (!timetableData || timetableData.length === 0) return 0;
     const now = new Date();
     const currentDay = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][now.getDay()];
     return timetableData.filter(c => c.Day === currentDay).length;
-  };
+  }, [timetableData]);
 
   // Show onboarding for first-time users
   if (showOnboarding) {
@@ -97,9 +98,9 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-background-dark transition-colors">
+    <div className="min-h-screen bg-white dark:bg-background-dark transition-colors overflow-hidden">
       {/* Compact Single-Line Header - 60px height */}
-      <header className="glass-frosted sticky top-0 z-20 shadow-sm">
+      <header className="glass-frosted sticky top-0 z-20 shadow-sm will-change-transform">
         <div className="max-w-7xl mx-auto px-4 h-[60px] flex items-center justify-between">
           {/* Left: App Name */}
           <div className="flex items-center gap-2">
@@ -222,12 +223,12 @@ export default function Home() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
+                  transition={{ delay: 0.1, duration: 0.3 }}
                   className="bg-white dark:bg-gray-800 rounded-xl shadow-soft p-4 border border-gray-100 dark:border-gray-700"
                 >
                   <div className="flex items-center justify-center gap-2">
                     <div className="text-4xl sm:text-5xl font-bold text-success-600 dark:text-success-500">
-                      {getTodayCount()}
+                      {todayCount}
                     </div>
                     <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
                       Today

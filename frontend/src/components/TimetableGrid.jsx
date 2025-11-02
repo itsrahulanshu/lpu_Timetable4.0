@@ -1,9 +1,10 @@
 /**
  * TimetableGrid Component
  * Native mobile app design with horizontal pill navigation
+ * Optimized for buttery smooth performance
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Building2, DoorOpen, Users } from 'lucide-react';
 
@@ -29,34 +30,36 @@ export default function TimetableGrid({ data }) {
     setSelectedDay(dayNames[currentDayIndex]);
   }, []);
 
-  // Group by day
-  const groupedByDay = data.reduce((acc, classItem) => {
-    const day = classItem.Day || 'Unknown';
-    if (!acc[day]) {
-      acc[day] = [];
-    }
-    acc[day].push(classItem);
-    return acc;
-  }, {});
+  // Memoize grouped data for better performance
+  const groupedByDay = useMemo(() => {
+    const grouped = data.reduce((acc, classItem) => {
+      const day = classItem.Day || 'Unknown';
+      if (!acc[day]) {
+        acc[day] = [];
+      }
+      acc[day].push(classItem);
+      return acc;
+    }, {});
 
-  // Sort classes by time
-  Object.keys(groupedByDay).forEach(day => {
-    groupedByDay[day].sort((a, b) => {
-      const timeA = a.timeRange?.start || 0;
-      const timeB = b.timeRange?.start || 0;
-      return timeA - timeB;
+    // Sort classes by time
+    Object.keys(grouped).forEach(day => {
+      grouped[day].sort((a, b) => {
+        const timeA = a.timeRange?.start || 0;
+        const timeB = b.timeRange?.start || 0;
+        return timeA - timeB;
+      });
     });
-  });
 
-  // Get classes to display
-  const getDisplayClasses = () => {
+    return grouped;
+  }, [data]);
+
+  // Memoize display classes
+  const displayClasses = useMemo(() => {
     if (selectedDay === 'All') {
       return data;
     }
     return groupedByDay[fullDays[selectedDay]] || [];
-  };
-
-  const displayClasses = getDisplayClasses();
+  }, [selectedDay, data, groupedByDay]);
   const hasClasses = displayClasses.length > 0;
 
   if (!data || data.length === 0) {
@@ -119,13 +122,14 @@ export default function TimetableGrid({ data }) {
         {hasClasses ? (
           <motion.div
             key={selectedDay}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             className="space-y-4"
           >
             {displayClasses.map((classItem, index) => (
-              <ClassCard key={index} classItem={classItem} index={index} />
+              <ClassCard key={`${classItem.Day}-${index}`} classItem={classItem} index={index} />
             ))}
           </motion.div>
         ) : (
@@ -191,8 +195,16 @@ function ClassCard({ classItem, index }) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className="relative overflow-hidden rounded-2xl bg-[#F0F4FF] dark:bg-gray-800 border-l-4 border-blue-500 dark:border-blue-600 p-5 shadow-sm"
+      transition={{ 
+        delay: index * 0.03,
+        duration: 0.3,
+        ease: [0.4, 0, 0.2, 1]
+      }}
+      whileHover={{ 
+        scale: 1.01,
+        transition: { duration: 0.2 }
+      }}
+      className="relative overflow-hidden rounded-2xl bg-[#F0F4FF] dark:bg-gray-800 border-l-4 border-blue-500 dark:border-blue-600 p-5 shadow-sm will-change-transform"
     >
       {/* Course Code with Time and Type Badges */}
       <div className="flex items-center justify-between gap-2 mb-2">
