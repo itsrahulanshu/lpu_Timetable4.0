@@ -73,7 +73,7 @@ export default function TimetableGrid({ data }) {
   return (
     <div className="space-y-3">
       {/* Horizontal Pill Navigation */}
-      <div className="overflow-x-auto scrollbar-hide pb-1">
+      <div className="overflow-x-auto scrollbar-hide pb-1 no-flicker">
         <div className="flex gap-2 w-fit mx-auto">
           {days.map((day) => {
             const isSelected = day === selectedDay;
@@ -86,6 +86,7 @@ export default function TimetableGrid({ data }) {
                 onClick={() => setSelectedDay(day)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                transition={{ duration: 0.15 }}
                 className={`
                   px-6 py-2.5 rounded-full font-medium text-sm transition-all whitespace-nowrap
                   ${isSelected 
@@ -93,6 +94,11 @@ export default function TimetableGrid({ data }) {
                     : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-2 border-gray-200 dark:border-gray-700'
                   }
                 `}
+                style={{ 
+                  transform: 'translate3d(0, 0, 0)',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden'
+                }}
               >
                 {day}
               </motion.button>
@@ -118,15 +124,20 @@ export default function TimetableGrid({ data }) {
       )}
 
       {/* Classes Grid */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="sync">
         {hasClasses ? (
           <motion.div
             key={selectedDay}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15, ease: "easeInOut" }}
             className="space-y-4"
+            style={{ 
+              transform: 'translate3d(0, 0, 0)',
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden'
+            }}
           >
             {displayClasses.map((classItem, index) => (
               <ClassCard key={`${classItem.Day}-${index}`} classItem={classItem} index={index} />
@@ -204,7 +215,13 @@ function ClassCard({ classItem, index }) {
         scale: 1.01,
         transition: { duration: 0.2 }
       }}
-      className="relative overflow-hidden rounded-2xl bg-[#F0F4FF] dark:bg-gray-800 border-l-4 border-blue-500 dark:border-blue-600 p-5 shadow-sm will-change-transform"
+      className="relative overflow-hidden rounded-2xl bg-[#F0F4FF] dark:bg-gray-800 border-l-4 border-blue-500 dark:border-blue-600 p-5 shadow-sm"
+      style={{ 
+        transform: 'translate3d(0, 0, 0)',
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
+        willChange: 'transform'
+      }}
     >
       {/* Course Code with Time and Type Badges */}
       <div className="flex items-center justify-between gap-2 mb-2">
