@@ -1,56 +1,84 @@
-# LPU Timetable App
+# 📚 LPU Timetable 4.0 - Modern PWA
 
-Modern timetable application for LPU students with native mobile design.
+> Beautiful, fast, and smart timetable app for LPU students
 
-## Features
+## 🚀 One-Click Vercel Deployment
 
-- 📱 Native mobile app design
-- 🎨 Dark/Light mode
-- 📊 Stats cards (total & today's classes)
-- 🔄 Smart caching & auto-refresh
-- 📴 Offline PWA support
-- ⚡ Fast & responsive
-- 🎯 Current/next class highlighting
-
-## Tech Stack
-
-**Frontend:** React 18, Vite, Tailwind CSS, Framer Motion  
-**Backend:** Node.js, Express
-
-## Deployment
-
-### Vercel
-
-**Backend:**
-```bash
-cd backend && vercel --prod
+**Only 3 Environment Variables Needed:**
 ```
-Environment variables: `UMS_USERNAME`, `UMS_PASSWORD`, `FRONTEND_URL`, `NODE_ENV=production`
-
-**Frontend:**
-```bash
-cd frontend && vercel --prod
+UMS_USERNAME = your_registration_number
+UMS_PASSWORD = your_password  
+ANTICAPTCHA_API_KEY = your_anticaptcha_key
 ```
-Environment variable: `VITE_API_URL`
 
-## Local Development
+**That's it!** Everything else is auto-configured! 🎉
+
+[📖 Full Deployment Guide](./DEPLOYMENT.md)
+
+---
+
+## ✨ Features
+
+- 🎨 **Native Mobile Design** - Looks like a real app
+- 📊 **Smart Stats** - See total classes and today's count
+- 🔄 **Auto-Refresh** - Fetches once daily, saves costs
+- ⏱️ **Cooldown System** - 2-minute refresh protection
+- 🌙 **Dark Mode** - Easy on the eyes
+- 📱 **PWA Ready** - Install on any device
+- 💾 **Offline Support** - Works without internet
+- ⚡ **Lightning Fast** - Optimized performance
+
+---
+
+## 🛠️ Tech Stack
+
+**Frontend:** React 18, Vite 5.4, Tailwind CSS 3.4, Framer Motion, Lucide Icons  
+**Backend:** Node.js, Express, Anti-Captcha API, Axios
+
+---
+
+## 🚀 Deployment
+
+### Option 1: Vercel (Recommended - Single Deployment)
+1. Push to GitHub
+2. Import on Vercel
+3. Add 3 environment variables
+4. Deploy!
+
+Frontend + Backend = **One Domain** ✅
+
+### Option 2: Separate Deployments
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+
+---
+
+## 💻 Local Development
 
 ```bash
-# Backend
-cd backend
-npm install
-cp .env.example .env
-npm run dev
+# Install all dependencies
+npm run install:all
 
-# Frontend
-cd frontend
-npm install  
-cp .env.example .env
-npm run dev
+# Run frontend (terminal 1)
+npm run dev:frontend
+
+# Run backend (terminal 2)
+npm run dev:backend
 ```
+
+Create environment files:
+- `backend/.env` - Copy from `.env.example`
+- `frontend/.env` - Optional
 
 Open: http://localhost:5173
 
-## License
+---
 
-MIT
+## 💚 Made with Love
+
+Created by **Rahulanshu** with ❤️
+
+---
+
+## 📄 License
+
+MIT License - Feel free to use and modify!

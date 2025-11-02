@@ -9,7 +9,7 @@ const config = {
   // Server
   port: process.env.PORT || 3001,
   env: process.env.NODE_ENV || 'development',
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
+  frontendUrl: process.env.FRONTEND_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:5173',
 
   // Credentials
   credentials: {
