@@ -1,0 +1,37 @@
+{
+  "name": "lpu-timetable-backend",
+  "version": "1.0.0",
+  "description": "Modern backend API for LPU Timetable",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "lpu",
+    "timetable",
+    "api"
+  ],
+  "author": "itsrahulanshu",
+  "license": "MIT",
+  "dependencies": {
+    "@antiadmin/anticaptchaofficial": "^1.0.53",
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^4.21.2",
+    "node-cache": "^5.1.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "overrides": {
+    "undici": "^5.28.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
