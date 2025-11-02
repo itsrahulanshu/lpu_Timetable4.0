@@ -98,9 +98,9 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-background-dark transition-colors overflow-hidden">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors overflow-hidden">
       {/* Compact Single-Line Header - 60px height */}
-      <header className="glass-frosted sticky top-0 z-20 shadow-sm will-change-transform">
+      <header className="glass-frosted sticky top-0 z-20 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 h-[60px] flex items-center justify-between">
           {/* Left: App Name */}
           <div className="flex items-center gap-2">

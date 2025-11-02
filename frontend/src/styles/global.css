@@ -19,18 +19,12 @@
     -webkit-touch-callout: none;
   }
   
-  body {
-    -webkit-overflow-scrolling: touch;
-    transform: translate3d(0, 0, 0);
-    backface-visibility: hidden;
-    perspective: 1000px;
-  }
-  
-  /* Force GPU acceleration for animations */
+  /* Force GPU acceleration for animations only */
   .motion-element,
   [data-motion],
   button:active {
     transform: translate3d(0, 0, 0);
+    -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
   }
 }
@@ -136,17 +130,17 @@ button, a, [role="button"] {
 /* Prevent layout shift and flickering on iOS */
 img, video, canvas, svg {
   transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 /* Optimize repaints on iOS */
 .no-flicker {
   transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  perspective: 1000px;
+  backface-visibility: hidden;
   -webkit-perspective: 1000px;
+  perspective: 1000px;
 }
 
 /* Custom scrollbar */
