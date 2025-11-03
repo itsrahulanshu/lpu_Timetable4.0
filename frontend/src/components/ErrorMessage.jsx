@@ -30,10 +30,8 @@ export default function ErrorMessage({ error, onRetry, cached = false }) {
     title = 'Connection Issue';
     message = 'Couldn\'t connect to the server. Please check your internet connection and try again.';
   } else if (error?.includes('wait') || error?.includes('cooldown')) {
-    icon = '⏱️';
-    title = 'Please Wait';
-    message = error;
-    showRetry = false;
+    // Don't show the big error box for cooldown - it's handled in Home.jsx
+    return null;
   } else if (error?.includes('cached') || error?.includes('Cached')) {
     icon = '📦';
     title = 'Showing Cached Data';

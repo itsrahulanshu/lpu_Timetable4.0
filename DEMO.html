@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Current/Next Class Demo - LPU Timetable</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        @keyframes slideProgress {
+            0% { width: 0%; }
+            100% { width: var(--progress); }
+        }
+        .live-badge {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .progress-bar {
+            animation: slideProgress 1s ease-out forwards;
+        }
+        .countdown {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="max-w-2xl mx-auto space-y-6">
+        <!-- Demo Controls -->
+        <div class="glass rounded-2xl p-6 shadow-2xl">
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">🎯 Current/Next Class Demo</h1>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Select Time Scenario:</label>
+                    <select id="timeScenario" class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-blue-500 focus:outline-none">
+                        <option value="in-class">🔴 In Class (9:00 AM - Current: 9:30 AM)</option>
+                        <option value="break">☕ Break Time (10:00 AM - Next at 11:00 AM)</option>
+                        <option value="before">🌅 Before First Class (8:00 AM - First at 9:00 AM)</option>
+                        <option value="after">✅ After Last Class (5:00 PM - All done!)</option>
+                        <option value="no-class">📚 No Classes Today (Sunday)</option>
+                    </select>
+                </div>
+                <button onclick="updateDemo()" class="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold rounded-xl hover:shadow-lg transition-all">
+                    🔄 Update Demo
+                </button>
+            </div>
+        </div>
+
+        <!-- Demo Display -->
+        <div id="demoContainer" class="space-y-4"></div>
+    </div>
+
+    <script>
+        const scenarios = {
+            'in-class': {
+                status: 'In Class',
+                current: {
+                    courseName: 'Machine Learning',
+                    courseCode: 'CSE345',
+                    time: '9:00 AM - 11:00 AM',
+                    building: '38',
+                    room: '605D',
+                    type: 'Lecture',
+                    startTime: 540, // 9:00 AM in minutes
+                    endTime: 660,   // 11:00 AM in minutes
+                    currentTime: 570 // 9:30 AM
+                },
+                next: {
+                    courseName: 'Data Structures',
+                    courseCode: 'CSE201',
+                    time: '11:00 AM - 12:00 PM',
+                    building: '42',
+                    room: '701A',
+                    type: 'Practical',
+                    startTime: 660,
+                    currentTime: 570
+                }
+            },
+            'break': {
+                status: 'Break Time',
+                current: null,
+                next: {
+                    courseName: 'Web Development',
+                    courseCode: 'CSE401',
+                    time: '11:00 AM - 1:00 PM',
+                    building: '35',
+                    room: '402B',
+                    type: 'Lab',
+                    startTime: 660,
+                    currentTime: 600 // 10:00 AM
+                }
+            },
+            'before': {
+                status: 'Before First Class',
+                current: null,
+                next: {
+                    courseName: 'Database Management',
+                    courseCode: 'CSE302',
+                    time: '9:00 AM - 10:30 AM',
+                    building: '40',
+                    room: '503',
+                    type: 'Tutorial',
+                    startTime: 540,
+                    currentTime: 480 // 8:00 AM
+                }
+            },
+            'after': {
+                status: 'All Done',
+                current: null,
+                next: null
+            },
+            'no-class': {
+                status: 'No Classes',
+                current: null,
+                next: null,
+                isHoliday: true
+            }
+        };
+
+        function getTimeRemaining(classItem, isCurrent) {
+            const currentMinutes = classItem.currentTime;
+            
+            if (isCurrent) {
+                const remaining = classItem.endTime - currentMinutes;
+                const hours = Math.floor(remaining / 60);
+                const mins = remaining % 60;
+                return hours > 0 ? `${hours}h ${mins}m` : `${mins} minutes`;
+            } else {
+                const until = classItem.startTime - currentMinutes;
+                const hours = Math.floor(until / 60);
+                const mins = until % 60;
+                return hours > 0 ? `${hours}h ${mins}m` : `${mins} minutes`;
+            }
+        }
+
+        function getProgress(classItem) {
+            const duration = classItem.endTime - classItem.startTime;
+            const elapsed = classItem.currentTime - classItem.startTime;
+            return Math.min(100, Math.max(0, (elapsed / duration) * 100));
+        }
+
+        function updateDemo() {
+            const scenario = scenarios[document.getElementById('timeScenario').value];
+            const container = document.getElementById('demoContainer');
+            
+            let html = '';
+
+            // Status Banner
+            if (scenario.status === 'In Class') {
+                html += `
+                    <div class="glass rounded-2xl p-4 border-l-4 border-red-500 shadow-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">🔴</div>
+                            <div>
+                                <p class="font-bold text-gray-900">Currently in class</p>
+                                <p class="text-sm text-gray-600">Next class starts soon</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (scenario.status === 'Break Time') {
+                html += `
+                    <div class="glass rounded-2xl p-4 border-l-4 border-green-500 shadow-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">☕</div>
+                            <div>
+                                <p class="font-bold text-gray-900">Break Time</p>
+                                <p class="text-sm text-gray-600">Next class in ${getTimeRemaining(scenario.next, false)}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (scenario.status === 'Before First Class') {
+                html += `
+                    <div class="glass rounded-2xl p-4 border-l-4 border-orange-500 shadow-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">🌅</div>
+                            <div>
+                                <p class="font-bold text-gray-900">Good Morning! First class today:</p>
+                                <p class="text-sm text-gray-600">⏰ Starts in ${getTimeRemaining(scenario.next, false)}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (scenario.status === 'All Done') {
+                html += `
+                    <div class="glass rounded-2xl p-4 border-l-4 border-green-500 shadow-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">✅</div>
+                            <div>
+                                <p class="font-bold text-gray-900">All classes done for today! 🎉</p>
+                                <p class="text-sm text-gray-600">Great work! Time to relax</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (scenario.isHoliday) {
+                html += `
+                    <div class="glass rounded-3xl p-12 text-center shadow-2xl">
+                        <div class="text-6xl mb-4">📚</div>
+                        <h2 class="text-4xl font-bold bg-gradient-to-r from-pink-500 to-orange-500 bg-clip-text text-transparent mb-3">
+                            It's Sunday!
+                        </h2>
+                        <p class="text-gray-600 text-lg">Hurray! Time for fun and rest 🎊</p>
+                    </div>
+                `;
+            }
+
+            // Current Class Card
+            if (scenario.current) {
+                const progress = getProgress(scenario.current);
+                html += `
+                    <div class="relative rounded-3xl overflow-hidden shadow-2xl">
+                        <div class="absolute inset-0 bg-gradient-to-r from-red-500 via-orange-500 to-red-500 opacity-75"></div>
+                        <div class="relative m-1 glass rounded-[22px] p-8">
+                            <!-- Live Badge -->
+                            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-red-500 to-orange-500 text-white text-sm font-bold mb-4 shadow-lg live-badge">
+                                <span>📡</span>
+                                <span>LIVE NOW</span>
+                                <div class="w-2 h-2 bg-white rounded-full"></div>
+                            </div>
+
+                            <!-- Course Name -->
+                            <h3 class="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-6">
+                                ${scenario.current.courseName}
+                            </h3>
+
+                            <!-- Time Progress -->
+                            <div class="mb-6">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm text-gray-600 flex items-center gap-1.5">
+                                        ⏰ ${scenario.current.time}
+                                    </span>
+                                    <span class="text-sm font-bold text-red-600 countdown">
+                                        Ends in ${getTimeRemaining(scenario.current, true)}
+                                    </span>
+                                </div>
+                                
+                                <!-- Progress Bar -->
+                                <div class="relative h-3 bg-gray-200 rounded-full overflow-hidden">
+                                    <div class="progress-bar absolute top-0 left-0 h-full bg-gradient-to-r from-red-500 via-orange-500 to-red-600 rounded-full" style="--progress: ${progress}%"></div>
+                                </div>
+                                <div class="text-right text-xs text-gray-500 mt-1">
+                                    ${Math.round(progress)}% complete
+                                </div>
+                            </div>
+
+                            <!-- Building and Room -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="rounded-2xl bg-gradient-to-br from-red-500/10 to-orange-500/10 border-2 border-red-300 p-6 text-center">
+                                    <div class="text-xs text-gray-500 mb-2 font-semibold uppercase">Building</div>
+                                    <div class="text-5xl font-black text-red-600">
+                                        ${scenario.current.building}
+                                    </div>
+                                </div>
+                                <div class="rounded-2xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border-2 border-orange-300 p-6 text-center">
+                                    <div class="text-xs text-gray-500 mb-2 font-semibold uppercase">Room</div>
+                                    <div class="text-5xl font-black text-orange-600">
+                                        ${scenario.current.room}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Type Badge -->
+                            <div class="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/50 border border-gray-300">
+                                <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                                <span class="text-xs font-semibold text-gray-700">${scenario.current.type}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Next Class Card
+            if (scenario.next) {
+                html += `
+                    <div class="relative rounded-3xl overflow-hidden shadow-2xl">
+                        <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 opacity-20"></div>
+                        <div class="glass rounded-[22px] p-8">
+                            <!-- Up Next Badge -->
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-sm font-bold shadow-lg">
+                                    <span>⏰</span>
+                                    <span>UP NEXT</span>
+                                </div>
+                            </div>
+
+                            <!-- Course Name -->
+                            <h3 class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-6">
+                                ${scenario.next.courseName}
+                            </h3>
+
+                            <!-- Countdown -->
+                            <div class="mb-6 p-4 rounded-2xl bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600 flex items-center gap-1.5">
+                                        ⏰ ${scenario.next.time}
+                                    </span>
+                                    <span class="text-lg font-mono font-bold text-blue-600 countdown">
+                                        ${getTimeRemaining(scenario.next, false)}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Building and Room -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="rounded-2xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-2 border-blue-300 p-6 text-center">
+                                    <div class="text-xs text-gray-500 mb-2 font-semibold uppercase">Building</div>
+                                    <div class="text-5xl font-black text-blue-600">
+                                        ${scenario.next.building}
+                                    </div>
+                                </div>
+                                <div class="rounded-2xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-2 border-cyan-300 p-6 text-center">
+                                    <div class="text-xs text-gray-500 mb-2 font-semibold uppercase">Room</div>
+                                    <div class="text-5xl font-black text-cyan-600">
+                                        ${scenario.next.room}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tags -->
+                            <div class="flex items-center gap-2 mt-4 flex-wrap">
+                                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/50 border border-gray-300">
+                                    <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                    <span class="text-xs font-semibold text-gray-700">${scenario.next.type}</span>
+                                </div>
+                                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/50 border border-gray-300">
+                                    <span class="text-xs font-mono font-semibold text-gray-700">${scenario.next.courseCode}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Initial load
+        updateDemo();
+    </script>
+</body>
+</html>

@@ -15,6 +15,7 @@ import ThemeToggle from '../components/ThemeToggle';
 import Onboarding from '../components/Onboarding';
 import CurrentNextClass from '../components/CurrentNextClass';
 import InstallPrompt from '../components/InstallPrompt';
+import RefreshingOverlay from '../components/RefreshingOverlay';
 
 export default function Home() {
   const {
@@ -47,15 +48,15 @@ export default function Home() {
     refresh();
   };
 
-  // Format cooldown message
+  // Format cooldown message - simpler version
   const getCooldownMessage = () => {
     if (!error || !error.startsWith('cooldown:')) return null;
     
     const [, minutes, seconds] = error.split(':');
     if (minutes === '0') {
-      return `Please wait ${seconds}s before refreshing`;
+      return `⏱️ Please wait ${seconds}s before refreshing again`;
     }
-    return `Please wait ${minutes}m ${seconds}s before refreshing`;
+    return `⏱️ Please wait ${minutes}m ${seconds}s before refreshing again`;
   };
 
   const isCooldownError = error && error.startsWith('cooldown:');
@@ -99,6 +100,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors overflow-hidden">
+      {/* Refreshing Overlay with Live Progress */}
+      <RefreshingOverlay isRefreshing={refreshing} />
+
       {/* Compact Single-Line Header - 60px height */}
       <header className="glass-frosted sticky top-0 z-20 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 h-[60px] flex items-center justify-between">
@@ -149,15 +153,14 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-3 sm:py-4">
-        {/* Cooldown Message Banner */}
+        {/* Cooldown Timer - Simple Banner */}
         {isCooldownError && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center gap-2"
+            className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl"
           >
-            <span className="text-xl">⏱️</span>
-            <p className="text-sm text-amber-800 dark:text-amber-300 font-medium">
+            <p className="text-sm text-blue-800 dark:text-blue-300 font-medium text-center">
               {getCooldownMessage()}
             </p>
           </motion.div>
