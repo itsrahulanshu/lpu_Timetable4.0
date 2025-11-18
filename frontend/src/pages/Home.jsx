@@ -28,6 +28,7 @@ export default function Home() {
     isOnline,
     lastFetchInfo,
     cooldownRemaining,
+    backgroundUpdating,
     refresh,
     reload
   } = useTimetable();
@@ -142,14 +143,38 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Background Updating Banner */}
+      {backgroundUpdating && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-b border-blue-200 dark:border-blue-800"
+        >
+          <div className="max-w-7xl mx-auto px-4 py-2">
+            <p className="text-xs sm:text-sm text-center text-blue-800 dark:text-blue-300 font-medium flex items-center justify-center gap-2">
+              <motion.span
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              >
+                🔄
+              </motion.span>
+              Updating today's data...
+            </p>
+          </div>
+        </motion.div>
+      )}
+
       {/* Helpful Message Banner */}
-      <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 border-b border-amber-200 dark:border-amber-800">
-        <div className="max-w-7xl mx-auto px-4 py-2">
-          <p className="text-xs sm:text-sm text-center text-amber-800 dark:text-amber-300 font-medium">
-            💡 Only refresh if needed, save running cost 🤕💰
-          </p>
+      {!backgroundUpdating && (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 border-b border-amber-200 dark:border-amber-800">
+          <div className="max-w-7xl mx-auto px-4 py-2">
+            <p className="text-xs sm:text-sm text-center text-amber-800 dark:text-amber-300 font-medium">
+              💡 Only refresh if needed, save running cost 🤕💰
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-3 sm:py-4">

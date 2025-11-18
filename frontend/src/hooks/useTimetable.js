@@ -26,6 +26,7 @@ export const useTimetable = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [lastFetchInfo, setLastFetchInfo] = useState('');
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
+  const [backgroundUpdating, setBackgroundUpdating] = useState(false);
 
   // Monitor online/offline status
   useEffect(() => {
@@ -140,11 +141,16 @@ export const useTimetable = () => {
    */
   const loadTimetable = async (force = false) => {
     try {
-      setLoading(true);
-      setError(null);
-
-      // First, try to load cached data immediately
+      // First, ALWAYS load cached data immediately (no loading state for cached data)
       const hasCached = loadCachedData();
+      
+      if (hasCached) {
+        setLoading(false); // Data is already shown from cache
+      } else {
+        setLoading(true); // Show loading only if no cache
+      }
+      
+      setError(null);
 
       // If offline, show cached data only
       if (!isOnline) {
@@ -158,32 +164,46 @@ export const useTimetable = () => {
         return;
       }
 
-      // Check if we should fetch today
+      // Check if we should fetch today (ONLY once per day unless forced)
       if (!force && !shouldFetchToday() && hasCached) {
-        // Already fetched today, use cache
+        // Already fetched today, use cache without any API call
+        console.log('📦 Using cached data - already fetched today');
         setLoading(false);
         return;
       }
 
-      // Fetch fresh data
-      const data = await getTimetable();
-      
-      if (data.success) {
-        setTimetableData(data.data);
-        setLastUpdated(data.timestamp);
-        setCached(data.cached || false);
+      // Only fetch if we haven't fetched today OR if forced (manual refresh)
+      if (force || shouldFetchToday()) {
+        console.log('🔄 Fetching fresh data from API...');
         
-        // Save to localStorage
-        saveToCacheAsync(data.data, data.timestamp);
+        // If we have cached data, show "updating" banner instead of loading screen
+        if (hasCached) {
+          setBackgroundUpdating(true);
+        }
         
-        const hoursSince = 0;
-        setLastFetchInfo('Just updated');
-      } else if (hasCached) {
-        // API returned no success but we have cache
-        setError('Could not fetch fresh data. Showing cached version.');
-        setCached(true);
+        // Fetch fresh data (in background if we have cache)
+        const data = await getTimetable();
+        
+        if (data.success) {
+          setTimetableData(data.data);
+          setLastUpdated(data.timestamp);
+          setCached(data.cached || false);
+          
+          // Save to localStorage AND mark today as fetched
+          saveToCacheAsync(data.data, data.timestamp);
+          
+          setLastFetchInfo('Just updated');
+          setBackgroundUpdating(false);
+        } else if (hasCached) {
+          // API returned no success but we have cache
+          setError('Could not fetch fresh data. Showing cached version.');
+          setCached(true);
+          setBackgroundUpdating(false);
+        }
       }
     } catch (err) {
+      setBackgroundUpdating(false);
+      
       // On error, keep showing cached data if available
       const hasCached = loadCachedData();
       
@@ -271,6 +291,7 @@ export const useTimetable = () => {
     isOnline,
     lastFetchInfo,
     cooldownRemaining,
+    backgroundUpdating,
     refresh: handleRefresh,
     reload: loadTimetable
   };

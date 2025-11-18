@@ -4,7 +4,7 @@
  * Optimized for buttery smooth performance
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Building2, DoorOpen, Users } from 'lucide-react';
 
@@ -130,7 +130,11 @@ export default function TimetableGrid({ data }) {
             className="space-y-4"
           >
             {displayClasses.map((classItem, index) => (
-              <ClassCard key={`${classItem.Day}-${index}`} classItem={classItem} index={index} />
+              <ClassCard 
+                key={`${classItem.Day}-${classItem.CourseCode}-${index}`} 
+                classItem={classItem} 
+                index={index} 
+              />
             ))}
           </motion.div>
         ) : (
@@ -153,7 +157,8 @@ export default function TimetableGrid({ data }) {
   );
 }
 
-function ClassCard({ classItem, index }) {
+// Memoized ClassCard component to prevent unnecessary re-renders
+const ClassCard = memo(({ classItem, index }) => {
   const getClassTypeColor = (type) => {
     switch (type?.toLowerCase()) {
       case 'lecture':
@@ -197,13 +202,13 @@ function ClassCard({ classItem, index }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ 
-        delay: index * 0.03,
-        duration: 0.3,
-        ease: [0.4, 0, 0.2, 1]
+        delay: Math.min(index * 0.02, 0.5), // Cap max delay to 0.5s
+        duration: 0.2,
+        ease: "easeOut"
       }}
       whileHover={{ 
-        scale: 1.01,
-        transition: { duration: 0.2 }
+        scale: 1.005,
+        transition: { duration: 0.15 }
       }}
       className="relative overflow-hidden rounded-2xl bg-[#F0F4FF] dark:bg-gray-800 border-l-4 border-blue-500 dark:border-blue-600 p-5 shadow-sm"
     >
@@ -280,4 +285,4 @@ function ClassCard({ classItem, index }) {
       </div>
     </motion.div>
   );
-}
+});

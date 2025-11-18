@@ -4,7 +4,7 @@
  * This is the MAIN feature - users should instantly know their next class
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Radio, 
@@ -25,8 +25,11 @@ export default function CurrentNextClass({ data }) {
   const [nextClass, setNextClass] = useState(null);
   const [timeStatus, setTimeStatus] = useState('');
 
-  // Update current time every minute
+  // Update current time every minute (optimized)
   useEffect(() => {
+    // Update immediately on mount
+    setCurrentTime(new Date());
+    
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000); // Update every minute
@@ -34,11 +37,43 @@ export default function CurrentNextClass({ data }) {
     return () => clearInterval(timer);
   }, []);
 
-  // Calculate current and next class
-  useEffect(() => {
-    if (!data || data.length === 0) return;
+  // Helper function to parse time string to minutes (memoized)
+  const parseTimeToMinutes = useCallback((timeStr) => {
+    if (!timeStr) return 0;
+    
+    // Remove any whitespace
+    timeStr = timeStr.trim();
+    
+    // Handle 12-hour format (e.g., "9:00 AM", "2:30 PM")
+    if (timeStr.includes('AM') || timeStr.includes('PM') || timeStr.includes('am') || timeStr.includes('pm')) {
+      const isPM = timeStr.toUpperCase().includes('PM');
+      const timeOnly = timeStr.replace(/AM|PM|am|pm/gi, '').trim();
+      const [hours, minutes] = timeOnly.split(':').map(num => parseInt(num) || 0);
+      
+      let adjustedHours = hours;
+      if (isPM && hours !== 12) {
+        adjustedHours = hours + 12;
+      } else if (!isPM && hours === 12) {
+        adjustedHours = 0;
+      }
+      
+      return adjustedHours * 60 + minutes;
+    }
+    
+    // Handle 24-hour format (e.g., "09:00", "14:30")
+    const [hours, minutes] = timeStr.split(':').map(num => parseInt(num) || 0);
+    return hours * 60 + minutes;
+  }, []);
 
-    const now = new Date();
+  // Calculate current and next class (optimized with useMemo)
+  useEffect(() => {
+    if (!data || data.length === 0) {
+      setCurrentClass(null);
+      setNextClass(null);
+      return;
+    }
+
+    const now = currentTime;
     const currentDay = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][now.getDay()];
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
@@ -120,35 +155,7 @@ export default function CurrentNextClass({ data }) {
 
     setCurrentClass(current);
     setNextClass(next);
-  }, [data, currentTime]);
-
-  // Helper function to parse time string to minutes
-  const parseTimeToMinutes = (timeStr) => {
-    if (!timeStr) return 0;
-    
-    // Remove any whitespace
-    timeStr = timeStr.trim();
-    
-    // Handle 12-hour format (e.g., "9:00 AM", "2:30 PM")
-    if (timeStr.includes('AM') || timeStr.includes('PM') || timeStr.includes('am') || timeStr.includes('pm')) {
-      const isPM = timeStr.toUpperCase().includes('PM');
-      const timeOnly = timeStr.replace(/AM|PM|am|pm/gi, '').trim();
-      const [hours, minutes] = timeOnly.split(':').map(num => parseInt(num) || 0);
-      
-      let adjustedHours = hours;
-      if (isPM && hours !== 12) {
-        adjustedHours = hours + 12;
-      } else if (!isPM && hours === 12) {
-        adjustedHours = 0;
-      }
-      
-      return adjustedHours * 60 + minutes;
-    }
-    
-    // Handle 24-hour format (e.g., "09:00", "14:30")
-    const [hours, minutes] = timeStr.split(':').map(num => parseInt(num) || 0);
-    return hours * 60 + minutes;
-  };
+  }, [data, currentTime, parseTimeToMinutes]);
 
   // Calculate time remaining/until
   const getTimeRemaining = (classItem, isCurrent) => {
